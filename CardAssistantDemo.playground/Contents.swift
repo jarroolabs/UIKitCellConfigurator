@@ -1,8 +1,6 @@
 import UIKit
 import PlaygroundSupport
 import UIKitCellConfigurator
-import UIKitCellConfiguratorHelpers
-
 //: ## Models
 
 struct Weather {

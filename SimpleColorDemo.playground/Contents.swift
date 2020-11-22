@@ -1,18 +1,6 @@
 import UIKit
 import PlaygroundSupport
 import UIKitCellConfigurator
-import UIKitCellConfiguratorHelpers
-
-//: ## Random color generator
-
-func randomColor() -> UIColor {
-    let colors = [
-        UIColor.systemRed,
-        .systemGreen,
-        .systemBlue
-    ]
-    return colors.randomElement() ?? .white
-}
 
 //: ## View
 
@@ -32,29 +20,42 @@ class ColorView: UIView {
 
 //: ## Cell configurator
 
-let cellConfigurator = CellConfigurator(
-    modelClass: UIColor.self,
-    cellClass: CollectionViewContainerCell<ColorView>.self,
-    configureCell: { model, cell in
-        cell.view.color = model
+
+class RandomColorDataSource: NSObject, UICollectionViewDataSource {
+    
+    let cellConfigurator = CellConfigurator(
+        modelClass: UIColor.self,
+        cellClass: CollectionViewContainerCell<ColorView>.self,
+        configureCell: { model, cell in
+            cell.view.color = model
+        }
+    )
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        100
     }
-)
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        cellConfigurator.configure(withModel: randomColor(), collectionView: collectionView, indexPath: indexPath)
+    }
+
+    private func randomColor() -> UIColor {
+        let colors = [
+            UIColor.systemRed,
+            .systemGreen,
+            .systemBlue
+        ]
+        return colors.randomElement() ?? .white
+    }
+}
 
 //: ## Collection view controller
 
 let layout = UICollectionViewFlowLayout()
-let collection = CollectionViewController(collectionViewLayout: layout)
+let controller = UICollectionViewController(collectionViewLayout: layout)
+let randomColorDataSource = RandomColorDataSource()
 
-collection.register(cellType: cellConfigurator.cellType)
+controller.collectionView.dataSource = randomColorDataSource
+controller.collectionView.register(cellType: randomColorDataSource.cellConfigurator.cellType)
 
-collection.numberOfItems = { _ in 100 }
-
-collection.cellForItemAt = { cv, ip in
-    cellConfigurator.configure(
-        withModel: randomColor(),
-        collectionView: cv,
-        indexPath: ip
-    )
-}
-
-PlaygroundPage.current.liveView = collection
+PlaygroundPage.current.liveView = controller

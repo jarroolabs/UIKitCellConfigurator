@@ -1,16 +1,9 @@
 import UIKit
 import PlaygroundSupport
 import UIKitCellConfigurator
-import UIKitCellConfiguratorHelpers
 
-class Controller : UITableViewController {
-    
-    struct Item {
-        let title: String
-        let subtitle: String
-    }
-
-    let periodicTable = [
+class PeriodicTableDataSource: NSObject, UITableViewDataSource {
+    private let periodicTable = [
         Item(title: "H", subtitle: "Hydrogen"),
         Item(title: "Li", subtitle: "Lithium"),
         Item(title: "Na", subtitle: "Sodium"),
@@ -20,6 +13,11 @@ class Controller : UITableViewController {
         Item(title: "F", subtitle: "Francium")
     ]
     
+    struct Item {
+        let title: String
+        let subtitle: String
+    }
+
     let cellConfigurator = CellConfigurator(
         modelClass: Item.self,
         cellClass: TableViewSubtitleCell.self,
@@ -29,16 +27,11 @@ class Controller : UITableViewController {
         }
     )
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        tableView.register(cellType: cellConfigurator.cellType)
-    }
-    
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         periodicTable.count
     }
     
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         cellConfigurator.configure(
             withModel: periodicTable[indexPath.row],
             tableView: tableView,
@@ -47,4 +40,26 @@ class Controller : UITableViewController {
     }
 }
 
-PlaygroundPage.current.liveView = Controller()
+class Controller : UITableViewController {
+    private let dataSource: PeriodicTableDataSource
+    
+    init(dataSource: PeriodicTableDataSource) {
+        self.dataSource = dataSource
+        super.init(style: .plain)
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        tableView.dataSource = dataSource
+        tableView.register(cellType: dataSource.cellConfigurator.cellType)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError()
+    }
+}
+
+PlaygroundPage.current.liveView = Controller(
+    dataSource: PeriodicTableDataSource()
+)

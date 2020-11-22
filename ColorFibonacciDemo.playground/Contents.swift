@@ -1,32 +1,39 @@
 import UIKit
 import PlaygroundSupport
 import UIKitCellConfigurator
-import UIKitCellConfiguratorHelpers
-//:
-//: # Collection view generics en cell type demo
-//: Demonstrates how to CellConfigurator and CellType.
-//:
-//: ## Cell views
-//: We'll give every cell its own distinct view to display.
-//:
-//: * `ColorView` takes a `color` and displays it as its background.
-//: * `NumberView` displays an `Int` on a yellow background.
-//:
-class ColorView: UIView {
-    var color = UIColor.clear {
-        didSet {
-            layer.cornerRadius = 16
-            clipsToBounds = true
 
-            backgroundColor = color
+//:### Color view and its view model
+//: `ColorView` simply draws a color in a rounded corner frame.
+struct ColorViewModel {
+    let color: UIColor
+}
+
+class ColorView: UIView {
+    var viewModel: ColorViewModel? {
+        didSet {
+            backgroundColor = viewModel?.color
         }
     }
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        layer.cornerRadius = 16
+        clipsToBounds = true
+    }
+    
+    required init?(coder: NSCoder) { fatalError() }
+}
+
+//:### Number view and its view model
+//:`NumberView` draws a number on yellow rounded-rect.
+struct NumberViewModel {
+    let number: Int
 }
 
 class NumberView: UILabel {
-    var number: Int? {
+    var viewModel: NumberViewModel? {
         didSet {
-            text = number.map { "\($0)" }
+            text = (viewModel?.number).map { "\($0)" }
         }
     }
 
@@ -34,64 +41,24 @@ class NumberView: UILabel {
         super.init(frame: frame)
         layer.cornerRadius = 16
         clipsToBounds = true
-
         textAlignment = .center
         backgroundColor = .systemYellow
     }
 
     required init?(coder: NSCoder) { fatalError() }
 }
-//:
-//: ## Cell configurators
-//: A cell configurator pairs a cell class with its associated model type. Whenever a cell gets dequeue, the model data is passed to the cell.
-//:
-let colorCellConfigurator = CellConfigurator(
-    modelClass: UIColor.self,
-    cellClass: CollectionViewContainerCell<ColorView>.self
-) { model, cell in
-    cell.view.color = model
-}
 
-let numberCellConfigurator = CellConfigurator(
-    modelClass: Int.self,
-    cellClass: CollectionViewContainerCell<NumberView>.self
-) { model, cell in
-    cell.view.number = model
-}
-
-//: ## Collection view layout
-//: This demo layout just sets some parameters to get something simple running.
-
-class DemoLayout: UICollectionViewFlowLayout {
-    override init() {
-        super.init()
-        let spacing = CGFloat(16)
-        sectionInset = UIEdgeInsets(top: spacing, left: spacing, bottom: spacing, right: spacing)
-        minimumLineSpacing = spacing
-        minimumInteritemSpacing = spacing
-        itemSize = CGSize(
-            width: spacing * 6,
-            height: spacing * 6
-        )
-    }
-
-    required init?(coder: NSCoder) { fatalError() }
-}
-
-struct ViewModel {
+//:### FibonacciColor ViewModel
+//:The view model handles and represents the data model for the Fibonacci color collection view controller. It knows how to fetch items, and maps them into the view models defined earlier.
+class FibonacciColorViewModel {
     private var items = [Item]()
-    private let fetchItems: () -> [Item]
 
     enum Item {
-        case color(UIColor)
-        case number(Int)
+        case color(ColorViewModel)
+        case number(NumberViewModel)
     }
     
-    init(fetchItems: @escaping () -> [Item]) {
-        self.fetchItems = fetchItems
-    }
-    
-    mutating func fetch(completion: @escaping () -> Void) {
+    func fetch(completion: @escaping () -> Void) {
         items = fetchItems()
         completion()
     }
@@ -107,75 +74,115 @@ struct ViewModel {
     func item(at indexPath: IndexPath) -> Item {
         items[indexPath.item]
     }
-}
-
-func fibonacciItems() -> [ViewModel.Item] {
-    [
-        .color(.systemRed),
-        .number(1),
-        .color(.systemGreen),
-        .number(1),
-        .color(.systemBlue),
-        .number(2),
-        .color(.systemIndigo),
-        .number(3),
-        .color(.systemGreen),
-        .number(5),
-        .color(.systemBlue),
-        .number(8),
-        .color(.systemIndigo),
-        .number(13),
-        .color(.systemRed),
-        .number(21),
-        .color(.systemGreen),
-        .number(34),
-        .color(.systemBlue),
-        .number(55),
-        .color(.systemIndigo),
-        .number(89),
-        .color(.systemGreen),
-        .number(144),
-        .color(.systemBlue),
-        .number(233),
-        .color(.systemIndigo),
-        .number(377)
-    ]
-}
-
-//: Collection View
-
-var viewModel = ViewModel(fetchItems: fibonacciItems)
-
-let collection = CollectionViewController(collectionViewLayout: DemoLayout())
-
-collection.collectionView.backgroundColor = .black
-collection.register(cellType: colorCellConfigurator.cellType)
-collection.register(cellType: numberCellConfigurator.cellType)
-
-collection.numberOfSections = viewModel.numberOfSections
-collection.numberOfItems = { _ in viewModel.numberOfItems() }
-
-collection.cellForItemAt = { cv, ip in
-    switch viewModel.item(at: ip) {
     
-    case let .color(color):
-        return colorCellConfigurator.configure(
-            withModel: color,
-            collectionView: cv,
-            indexPath: ip
-        )
-        
-    case let .number(number):
-        return numberCellConfigurator.configure(
-            withModel: number,
-            collectionView: cv,
-            indexPath: ip
-        )
+    func fetchItems() -> [FibonacciColorViewModel.Item] {
+        [
+            .color(.init(color: .systemRed)),
+            .number(.init(number: 1)),
+            .color(.init(color: .systemGreen)),
+            .number(.init(number: 1)),
+            .color(.init(color: .systemBlue)),
+            .number(.init(number: 2)),
+            .color(.init(color: .systemIndigo)),
+            .number(.init(number: 3)),
+            .color(.init(color: .systemGreen)),
+            .number(.init(number: 5)),
+            .color(.init(color: .systemBlue)),
+            .number(.init(number: 8)),
+            .color(.init(color: .systemIndigo)),
+            .number(.init(number: 13)),
+            .color(.init(color: .systemRed)),
+            .number(.init(number: 21)),
+            .color(.init(color: .systemGreen)),
+            .number(.init(number: 34)),
+            .color(.init(color: .systemBlue)),
+            .number(.init(number: 55)),
+            .color(.init(color: .systemIndigo)),
+            .number(.init(number: 89)),
+            .color(.init(color: .systemGreen)),
+            .number(.init(number: 144)),
+            .color(.init(color: .systemBlue)),
+            .number(.init(number: 233)),
+            .color(.init(color: .systemIndigo)),
+            .number(.init(number: 377))
+        ]
     }
 }
 
-viewModel.fetch(completion: collection.collectionView.reloadData)
+//:### FibonacciColorDataSource
+//:This data source acts as an adapter for `FibonacciColorViewModel`, making it fit the `UICollectionViewDataSource` API. It defines the required cell configurators, and invokes them according to the data represented by the view model.
+class FibonacciColorDataSource: NSObject, UICollectionViewDataSource {
+    private let viewModel: FibonacciColorViewModel
+    
+    let colorCellConfigurator = CellConfigurator(
+        modelClass: ColorViewModel.self,
+        cellClass: CollectionViewContainerCell<ColorView>.self
+    ) { viewModel, cell in
+        cell.view.viewModel = viewModel
+    }
 
-// Present the view controller in the Live View window
-PlaygroundPage.current.liveView = collection
+    let numberCellConfigurator = CellConfigurator(
+        modelClass: NumberViewModel.self,
+        cellClass: CollectionViewContainerCell<NumberView>.self
+    ) { viewModel, cell in
+        cell.view.viewModel = viewModel
+    }
+    
+    init(viewModel: FibonacciColorViewModel) {
+        self.viewModel = viewModel
+        super.init()
+    }
+    
+    func registerCellConfigurators(on collectionView: UICollectionView) {
+        collectionView.register(cellType: dataSource.colorCellConfigurator.cellType)
+        collectionView.register(cellType: dataSource.numberCellConfigurator.cellType)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        viewModel.numberOfItems()
+    }
+    
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        viewModel.numberOfSections()
+    }
 
+    func collectionView(
+        _ collectionView: UICollectionView,
+        cellForItemAt indexPath: IndexPath
+    ) -> UICollectionViewCell {
+        switch viewModel.item(at: indexPath) {
+        
+        case let .color(color):
+            return colorCellConfigurator.configure(
+                withModel: color,
+                collectionView: collectionView,
+                indexPath: indexPath
+            )
+            
+        case let .number(number):
+            return numberCellConfigurator.configure(
+                withModel: number,
+                collectionView: collectionView,
+                indexPath: indexPath
+            )
+        }
+    }
+}
+
+//:### Wiring everything together...
+let viewModel = FibonacciColorViewModel()
+let dataSource = FibonacciColorDataSource(viewModel: viewModel)
+let controller = UICollectionViewController(
+    collectionViewLayout: UICollectionViewFlowLayout.squareLayout(spacing: 16)
+)
+
+controller.collectionView.backgroundColor = .black
+controller.collectionView.dataSource = dataSource
+
+dataSource.registerCellConfigurators(on: controller.collectionView)
+
+viewModel.fetch {
+    controller.collectionView.reloadData()
+}
+
+PlaygroundPage.current.liveView = controller

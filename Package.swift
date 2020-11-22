@@ -13,10 +13,6 @@ let package = Package(
         .library(
             name: "UIKitCellConfigurator",
             targets: ["UIKitCellConfigurator"]),
-
-        .library(
-            name: "UIKitCellConfiguratorHelpers",
-            targets: ["UIKitCellConfiguratorHelpers"]),
     ],
     targets: [
         .target(
@@ -25,13 +21,5 @@ let package = Package(
         .testTarget(
             name: "UIKitCellConfiguratorTests",
             dependencies: ["UIKitCellConfigurator"]),
-
-        // Helpers:
-        .target(
-            name: "UIKitCellConfiguratorHelpers",
-            dependencies: ["UIKitCellConfigurator"]),
-        .testTarget(
-            name: "UIKitCellConfiguratorHelpersTests",
-            dependencies: ["UIKitCellConfiguratorHelpers"])
     ]
 )
