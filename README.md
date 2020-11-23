@@ -1,6 +1,6 @@
-# UIKit CellConfigurator
+# UIKitCellConfigurator
 
-Example:
+Code example:
 
 ```swift
 let cellConfigurator = CellConfigurator(
@@ -26,3 +26,12 @@ collection.cellForItemAt = { cv, ip in
     )
 }
 ```
+
+## Other examples
+
+Have  a look at the following Xcode playground demos:
+
+* SimpleColorDemo.playground
+* ColorFibonacciDemo.playground
+* TableDemo.playground
+* CardAssistantDemo.playground
